@@ -1,0 +1,21 @@
+[submodule "3rdparty/glm"]
+	path = 3rdparty/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "3rdparty/assimp"]
+	path = 3rdparty/assimp
+	url = https://github.com/assimp/assimp.git
+[submodule "3rdparty/Elmer"]
+	path = 3rdparty/Elmer
+	url = https://github.com/jswarup/Elmer.git
+[submodule "3rdparty/vectorclass/vcl"]
+	path = 3rdparty/vectorclass/vcl
+	url = https://github.com/vectorclass/version2.git
+[submodule "3rdparty/vectorclass/add-on"]
+	path = 3rdparty/vectorclass/add-on
+	url = https://github.com/vectorclass/add-on.git
+[submodule "3rdparty/implot"]
+	path = 3rdparty/implot
+	url = https://github.com/epezent/implot.git
+[submodule "3rdparty/implot_demos"]
+	path = 3rdparty/implot_demos
+	url = https://github.com/epezent/implot_demos.git

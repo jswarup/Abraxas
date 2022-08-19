@@ -1,0 +1,7 @@
+build/
+out/*
+workdir/
+.vs/
+.vscode/
+ElmLib/
+
