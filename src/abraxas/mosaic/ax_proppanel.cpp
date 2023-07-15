@@ -344,7 +344,7 @@ void        Ax_PropPanel::RenderTabs( void)
                 if ( !modelDiffRoot.IsValid() && m_DiffBiome.HasModel())
                 {
                     { 
-                        Cy_ChoreScheduler       scheduler( 4);
+                        Cy_ChoreScheduler       scheduler( m_ServThrds);
                         scheduler.SetOStrm( &std::cout);
                         scheduler.DoInit(); 
                         
@@ -379,7 +379,7 @@ void        Ax_PropPanel::RenderTabs( void)
                     const char *name = modelRoot->Name();
                     m_FolioDiff = SubDiff( NodeDiff( name, 0, folioRoot, 0, folioBRoot));
                     { 
-                        Cy_ChoreScheduler       scheduler( 4);
+                        Cy_ChoreScheduler       scheduler( m_ServThrds);
                         scheduler.SetOStrm( &std::cout);
                         scheduler.DoInit(); 
                         

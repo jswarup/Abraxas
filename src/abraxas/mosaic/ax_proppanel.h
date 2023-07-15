@@ -24,7 +24,7 @@ struct Ax_TreeDetail : public Cy_TreeIfc
     Cy_Bunch< NodePtr>      m_CurTreeSubNodes;
 
     Ax_TreeDetail( void) :
-        m_PageMax( 20)
+        m_PageMax( 20) 
     {}
 
     NodePtr     GetCurTree( void) { return m_TreeStack.Size()  ? m_TreeStack.Last() : NULL; }
@@ -72,6 +72,7 @@ class Ax_PropPanel : public Cy_TreeIfc
     Cw_BiomeIfc         m_DiffBiome;
     SubDiff             m_ModelDiff;
     SubDiff             m_FolioDiff;
+    uint16_t            m_ServThrds;
 
     void        RenderNodePageCounter(  void);
     
@@ -84,7 +85,7 @@ class Ax_PropPanel : public Cy_TreeIfc
 public:
     Ax_PropPanel( Ax_AppScreen* screen) :
         m_Screen( screen), m_PropFlg( true), m_Mesh( NULL), m_ActiveTree( NULL), m_SimRunTHread( NULL), m_JacobiFlg( false),
-        m_SzBlkTick( 1024)
+        m_SzBlkTick( 1024), m_ServThrds( 8)
     {}
 
     NodePtr             ModelTree( void);
