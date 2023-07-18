@@ -22,15 +22,17 @@ struct Ax_TreeDetail : public Cy_TreeIfc
     Cy_Bunch< uint32_t>     m_PageStk;
     Cy_Bunch< NodePtr>      m_TreeStack;
     Cy_Bunch< NodePtr>      m_CurTreeSubNodes;
+    Cw_BiomeIfc             *m_Biome;
 
     Ax_TreeDetail( void) :
-        m_PageMax( 20) 
+        m_PageMax( 20), m_Biome( NULL)
     {}
 
     NodePtr     GetCurTree( void) { return m_TreeStack.Size()  ? m_TreeStack.Last() : NULL; }
 
-    void    SetTree( const NodePtr &modelTree)  
+    void    SetTree( const NodePtr &modelTree, Cw_BiomeIfc *biome)  
     {   
+        m_Biome = biome;
         m_TreeStack.PushBack( modelTree); 
         m_PageStk.PushBack( 0); 
     }
@@ -85,11 +87,11 @@ class Ax_PropPanel : public Cy_TreeIfc
 public:
     Ax_PropPanel( Ax_AppScreen* screen) :
         m_Screen( screen), m_PropFlg( true), m_Mesh( NULL), m_ActiveTree( NULL), m_SimRunTHread( NULL), m_JacobiFlg( false),
-        m_SzBlkTick( 1024), m_ServThrds( 8)
+        m_SzBlkTick( 1024), m_ServThrds( 4)
     {}
 
     NodePtr             ModelTree( void);
-    NodePtr             FolidTree( void);
+    NodePtr             FolioTree( void);
     NodePtr             CodegenTree( void);
     NodePtr             FetchSimBuild( void);
     NodePtr             FetchSimLoad( void);
@@ -101,13 +103,13 @@ public:
 
     void    SetModelTree( const NodePtr &modelTree)  
     { 
-        m_ModelTree.SetTree( modelTree);         
+        m_ModelTree.SetTree( modelTree, NULL);         
         m_ActiveTree = &m_ModelTree;
     }
  
     void    SetSimLoadTree( const NodePtr &simrunTree)  
     { 
-        m_SimLoadTree.SetTree( simrunTree);        
+        m_SimLoadTree.SetTree( simrunTree, NULL);        
         m_ActiveTree = &m_SimLoadTree;
     } 
     

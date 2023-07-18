@@ -94,7 +94,13 @@ void Ax_TreeDetail::RenderNode(  void)
             auto    subNode = m_CurTreeSubNodes.At( i -pgBegin); 
             if ( !subNode.IsValid())
                 subNode = curNode->NodeAt( i);
+            uint32_t    nodeKind = m_Biome ? m_Biome->VarKind( subNode)  : 0;
+            bool        simVar = ( nodeKind & ( 0x1 << 4 ));
+            if ( simVar)
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32( 220,255,235,255));
             bool    node_open = ImGui::TreeNodeEx(  subNode->Name(), node_flags,  "%s[ %u]", subNode->Name(), i);
+            if ( simVar)
+                ImGui::PopStyleColor();
 
             if ( node_open && ImGui::IsItemClicked())
             { 
@@ -198,8 +204,7 @@ bool    Ax_PropPanel::LoadDiffFile( const std::string &fName)
     if ( modelBTree.IsValid()) 
     { 
         NodePtr     modelATree = m_ModelTree.GetCurTree(); 
-        m_ModelDiff = SubDiff( NodeDiff( modelATree->Name(), 0, modelATree, 0, modelBTree));
-        
+        m_ModelDiff = SubDiff( NodeDiff( modelATree->Name(), 0, modelATree, 0, modelBTree)); 
     }
     return true;
 }
@@ -213,7 +218,7 @@ Cy_TreeIfc::NodePtr Ax_PropPanel::ModelTree( void)
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
-Cy_TreeIfc::NodePtr Ax_PropPanel::FolidTree( void)
+Cy_TreeIfc::NodePtr Ax_PropPanel::FolioTree( void)
 {
     return m_Biome.FetchFolio( m_JacobiFlg);
 }
@@ -263,7 +268,7 @@ void        Ax_PropPanel::RenderTabs( void)
         if ( modelRoot.IsValid() && ImGui::BeginTabItem( "Model"))
         {
             if ( !modelRoot.IsValid())
-                m_ModelTree.SetTree( modelRoot = ModelTree());
+                m_ModelTree.SetTree( modelRoot = ModelTree(), NULL);
             if ( modelRoot.IsValid())
                 activeTree = &m_ModelTree;
             ImGui::EndTabItem();
@@ -272,7 +277,7 @@ void        Ax_PropPanel::RenderTabs( void)
         if ( modelRoot.IsValid() && ImGui::BeginTabItem( "Folio"))
         { 
             if ( !folioRoot.IsValid())
-                m_FolioTree.SetTree( folioRoot = FolidTree());
+                m_FolioTree.SetTree( folioRoot = FolioTree(), &m_Biome);
             if ( folioRoot.IsValid())
                 activeTree = &m_FolioTree;
             ImGui::EndTabItem();
@@ -282,7 +287,7 @@ void        Ax_PropPanel::RenderTabs( void)
         if ( folioRoot.IsValid() && ImGui::BeginTabItem( "Codegen"))
         { 
             if ( !codeGenRoot.IsValid())
-                m_CodegenTree.SetTree( codeGenRoot = CodegenTree());
+                m_CodegenTree.SetTree( codeGenRoot = CodegenTree(), NULL);
             if ( codeGenRoot.IsValid())
                 activeTree = &m_CodegenTree;
             ImGui::EndTabItem();
@@ -291,7 +296,7 @@ void        Ax_PropPanel::RenderTabs( void)
         if ( codeGenRoot.IsValid() && ImGui::BeginTabItem( "SimBuild"))
         {
             if ( !simBuildRoot.IsValid())
-                m_SimBuildTree.SetTree( simBuildRoot = FetchSimBuild());
+                m_SimBuildTree.SetTree( simBuildRoot = FetchSimBuild(), NULL);
             if ( simBuildRoot.IsValid())
                 activeTree = &m_SimBuildTree;
             ImGui::EndTabItem();
@@ -300,7 +305,7 @@ void        Ax_PropPanel::RenderTabs( void)
         if ( ( simBuildRoot.IsValid() || simLoadRoot.IsValid()) && ImGui::BeginTabItem( "SimLoad"))
         {
             if ( !simLoadRoot.IsValid())
-                m_SimLoadTree.SetTree( simLoadRoot = FetchSimLoad());
+                m_SimLoadTree.SetTree( simLoadRoot = FetchSimLoad(), NULL);
             if ( simLoadRoot.IsValid())
                 activeTree = &m_SimLoadTree;
             ImGui::EndTabItem();
@@ -313,7 +318,7 @@ void        Ax_PropPanel::RenderTabs( void)
                 m_SimRunTHread = new std::thread( [&]( void) {
                     m_Screen->App()->IncrWorker();
                     auto    runTree = FetchSimRun();
-                    m_SimRunTree.SetTree(  runTree);
+                    m_SimRunTree.SetTree(  runTree, NULL);
                });
             }
             if ( simRunRoot.IsValid())
@@ -354,7 +359,7 @@ void        Ax_PropPanel::RenderTabs( void)
                         scheduler.CurQueue()->EnqueueJob( jobId);
                         scheduler.DoLaunch();
                     } 
-                    m_ModelDiffTree.SetTree( modelDiffRoot = m_ModelDiff.GetNode());
+                    m_ModelDiffTree.SetTree( modelDiffRoot = m_ModelDiff.GetNode(), NULL);
                 }
                 if ( modelDiffRoot.IsValid())
                     activeTree = &m_ModelDiffTree;
@@ -371,7 +376,7 @@ void        Ax_PropPanel::RenderTabs( void)
                 } 
                 NodePtr     folioRoot = m_FolioTree.GetCurTree();
                 if ( !folioRoot.IsValid())
-                    m_FolioTree.SetTree( folioRoot = FolidTree());
+                    m_FolioTree.SetTree( folioRoot = FolioTree(), &m_Biome);
                 
                 NodePtr     folioBRoot = m_DiffBiome.FetchFolio();
                 if ( !folioDiffRoot.IsValid() && folioBRoot.IsValid())
@@ -389,7 +394,7 @@ void        Ax_PropPanel::RenderTabs( void)
                         scheduler.CurQueue()->EnqueueJob( jobId);
                         scheduler.DoLaunch();
                     }  
-                    m_FolioDiffTree.SetTree( folioDiffRoot = m_FolioDiff.GetNode());
+                    m_FolioDiffTree.SetTree( folioDiffRoot = m_FolioDiff.GetNode(), NULL);
                 }
                 if ( folioDiffRoot.IsValid())
                     activeTree = &m_FolioDiffTree;     
