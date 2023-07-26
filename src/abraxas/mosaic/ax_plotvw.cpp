@@ -41,18 +41,18 @@ bool    Ax_PlotVw::Render1( void)
 
 bool    Ax_PlotVw::MonitorSimulation( uint32_t entInd, double time, uint32_t speciesInd, double speciesValue,  uint32_t clusterInd, uint32_t sz ) 
 { 
-    m_SpeciesFlgs.SetAt( speciesInd, 1);
-    if (( m_PlayBeginFlg = !sz) && (( entInd % 256) == 1))
+    m_PlotStore->m_SpeciesFlgs.SetAt( speciesInd, 1);
+    if ((  !sz) && (( entInd % 256) == 1))
     {
         std::lock_guard<std::mutex> lock( m_Mutex);
         Cy_USeg( 0, m_Species.Size()).Traverse( [&]( uint32_t k) {
-            if ( !m_SpeciesFlgs.At( k))
+            if ( !m_PlotStore->m_SpeciesFlgs.At( k))
                 return;
             double  curConc = m_Species.At( k)->AttrAt( 1).Value< double>();
-            m_SpeciesVals.PtrAt( k)->PushBack( float( curConc));
+            m_PlotStore->m_AllSpeciesVals.PtrAt( k)->PushBack( float( curConc));
         });
         float   curTime = ( float) m_Store->AttrAt( 0).Value< double>();
-        m_Times.PushBack( curTime);
+        m_PlotStore->m_Times.PushBack( curTime);
     }
     return true;
 }
@@ -61,7 +61,7 @@ bool    Ax_PlotVw::MonitorSimulation( uint32_t entInd, double time, uint32_t spe
 
 bool    Ax_PlotVw::Render( void)
 {  
-    if ( ! m_Times.Size())
+    if ( ! m_PlotRender->m_Times.Size())
         return true;
     std::lock_guard<std::mutex> lock( m_Mutex);
     ImGui::Begin( "Species Graph", NULL, ImGuiWindowFlags_NoCollapse); 
@@ -72,18 +72,18 @@ bool    Ax_PlotVw::Render( void)
         ImPlot::SetupAxis(ImAxis_X1, xLabel, ImPlotAxisFlags_AutoFit);
         ImPlot::SetupAxis(ImAxis_Y1, yLabel, ImPlotAxisFlags_AutoFit);
 
-        m_Limits = ImPlot::GetPlotLimits(); 
-        ImVec4  color(1,0.75f,0,1);
+        m_PlotRender->m_Limits = ImPlot::GetPlotLimits(); 
+        ImVec4  color( 1, 0.75f, 0, 1);
         ImPlot::SetNextLineStyle( color);
-        Cy_USeg( 0, m_Species.Size()).Traverse( [&]( uint32_t k) {
-            if ( !m_SpeciesFlgs.At( k))
+        Cy_USeg( 0, m_PlotRender->m_AllSpeciesVals.Size()).Traverse( [&]( uint32_t k) {
+            if ( !m_PlotRender->m_SpeciesFlgs.At( k))
                 return;
-            auto    *species = m_SpeciesVals.PtrAt( k);
+            auto    *species = m_PlotRender->m_AllSpeciesVals.PtrAt( k);
             uint32_t speciesSz = species->Size();
             if ( !speciesSz)
                 return;
-            uint32_t timeSz = m_Times.Size();
-            ImPlot::PlotLine("##item", m_Times.PtrAt( 0) -speciesSz +timeSz, species->PtrAt( 0), species->Size());
+            uint32_t timeSz = m_PlotRender->m_Times.Size();
+            ImPlot::PlotLine("##item", m_PlotRender->m_Times.PtrAt( 0) -speciesSz +timeSz, species->PtrAt( 0), species->Size());
         }); 
         ImPlot::EndPlot();
     }

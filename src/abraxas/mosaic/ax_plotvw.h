@@ -12,20 +12,40 @@ class Ax_PlotVw : public Cy_TreeIfc
     NodePtr                 m_Store; 
     Cy_FArr< NodePtr>       m_Species;
     
-    Cy_FArr< uint8_t>                   m_SpeciesFlgs;
-    Cy_FArr< Cy_Bunch< float>>          m_SpeciesVals;
-    Cy_Bunch< float>                    m_Times;
 
+    std::mutex                          m_Mutex;
     double                              m_TimeLow;
     double                              m_TimeHigh;
-    bool                                m_PlayBeginFlg;
-    ImPlotRect                          m_Limits;
-    std::mutex                          m_Mutex;
+    struct PlotData
+    { 
+        ImPlotRect                          m_Limits;
+        Cy_FArr< uint8_t>                   m_SpeciesFlgs;
+        Cy_FArr< Cy_Bunch< float>>          m_AllSpeciesVals;
+        Cy_Bunch< float>                    m_Times;
 
+        void    Clear( void)
+        {
+            m_SpeciesFlgs.Clear();
+            m_AllSpeciesVals.Clear();
+        }
+        void    DoSetup( uint32_t szNode)
+        {
+            m_AllSpeciesVals.DoInit( szNode); 
+            m_SpeciesFlgs.DoInit( szNode, 0);
+        }
+    };
+    
+    PlotData                                m_PlotData0; 
+    PlotData                                m_PlotData1; 
+    PlotData                                *m_PlotRender;
+    PlotData                                *m_PlotStore;
 public:
     Ax_PlotVw( void) :
-        m_Layout( NULL), m_PlayBeginFlg( true)
-    {}
+        m_Layout( NULL) 
+    {
+        m_PlotRender = &m_PlotData0;
+        m_PlotStore = &m_PlotData0;
+    }
 
     ~Ax_PlotVw( void)
     {
@@ -43,17 +63,17 @@ public:
     void    Clear( void)
     { 
         m_Species.Clear();
-        m_SpeciesFlgs.Clear();
-        m_SpeciesVals.Clear();
+        m_PlotData0.Clear();
+        m_PlotData1.Clear();
     }
 
     void    DoSetup( double time) 
     {  
-        auto    speciesIfc = m_Store->NodeAt( 1);
-        m_Species.DoInit( speciesIfc->SzNode(), NULL);
-        m_SpeciesVals.DoInit( speciesIfc->SzNode());
-
-        m_SpeciesFlgs.DoInit( speciesIfc->SzNode(), 0);
+        auto        speciesIfc = m_Store->NodeAt( 1);
+        uint32_t    szNode = speciesIfc->SzNode();
+        m_Species.DoInit( szNode, NULL);
+        m_PlotData0.DoSetup( szNode); 
+        m_PlotData1.DoSetup( szNode); 
         Cy_USeg( 0, m_Species.Size()).Traverse( [&]( uint32_t k) {
             m_Species.SetAt( k, speciesIfc->NodeAt( k));
         });
