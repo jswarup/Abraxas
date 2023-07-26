@@ -39,15 +39,39 @@ bool    Ax_PlotVw::Render1( void)
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
+bool    Ax_PlotVw::MonitorSimulation( uint32_t entInd, double time, uint32_t speciesInd, double speciesValue,  uint32_t clusterInd, uint32_t sz ) 
+{ 
+    m_SpeciesFlgs.SetAt( speciesInd, 1);
+    if (( m_PlayBeginFlg = !sz) && (( entInd % 256) == 1))
+    {
+        std::lock_guard<std::mutex> lock( m_Mutex);
+        Cy_USeg( 0, m_Species.Size()).Traverse( [&]( uint32_t k) {
+            if ( !m_SpeciesFlgs.At( k))
+                return;
+            double  curConc = m_Species.At( k)->AttrAt( 1).Value< double>();
+            m_SpeciesVals.PtrAt( k)->PushBack( float( curConc));
+        });
+        float   curTime = ( float) m_Store->AttrAt( 0).Value< double>();
+        m_Times.PushBack( curTime);
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------
+
 bool    Ax_PlotVw::Render( void)
 {  
     if ( ! m_Times.Size())
         return true;
     std::lock_guard<std::mutex> lock( m_Mutex);
-    ImGui::Begin( "Species Graph", NULL, ImGuiWindowFlags_NoCollapse);
-    //if (ImPlot::BeginPlot("##Plot",0,0,ImVec2(-1,-1),0,ImPlotAxisFlags_NoInitialFit,ImPlotAxisFlags_NoInitialFit)) 
-    if (ImPlot::BeginPlot("##Plot", "Time", "Conc", ImVec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit)) 
+    ImGui::Begin( "Species Graph", NULL, ImGuiWindowFlags_NoCollapse); 
+    const char  *xLabel = "Time";
+    const char  *yLabel = "Conc";
+    if (ImPlot::BeginPlot("##Plot", xLabel, yLabel, ImVec2(-1, 0), ImPlotFlags_None)) 
     {
+        ImPlot::SetupAxis(ImAxis_X1, xLabel, ImPlotAxisFlags_AutoFit);
+        ImPlot::SetupAxis(ImAxis_Y1, yLabel, ImPlotAxisFlags_AutoFit);
+
         m_Limits = ImPlot::GetPlotLimits(); 
         ImVec4  color(1,0.75f,0,1);
         ImPlot::SetNextLineStyle( color);
