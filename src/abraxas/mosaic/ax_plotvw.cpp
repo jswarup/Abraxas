@@ -42,18 +42,18 @@ bool    Ax_PlotVw::Render1( void)
 bool    Ax_PlotVw::MonitorSimulation( uint32_t entInd, double time, uint32_t speciesInd, double speciesValue,  uint32_t clusterInd, uint32_t sz ) 
 { 
     m_PlotStore->m_SpeciesFlgs.SetAt( speciesInd, 1);
-    if ((  !sz) && (( entInd % 256) == 1))
-    {
-        std::lock_guard<std::mutex> lock( m_Mutex);
-        Cy_USeg( 0, m_Species.Size()).Traverse( [&]( uint32_t k) {
-            if ( !m_PlotStore->m_SpeciesFlgs.At( k))
-                return;
-            double  curConc = m_Species.At( k)->AttrAt( 1).Value< double>();
-            m_PlotStore->m_AllSpeciesVals.PtrAt( k)->PushBack( float( curConc));
-        });
-        float   curTime = ( float) m_Store->AttrAt( 0).Value< double>();
-        m_PlotStore->m_Times.PushBack( curTime);
-    }
+    if (( entInd % 256) != 1)
+        return false;
+        
+    Cy_USeg( 0, m_Species.Size()).Traverse( [&]( uint32_t k) {
+        if ( !m_PlotStore->m_SpeciesFlgs.At( k))
+            return;
+        double  curConc = m_Species.At( k)->AttrAt( 1).Value< double>();
+        m_PlotStore->m_AllSpeciesVals.PtrAt( k)->PushBack( float( curConc));
+    });
+    float   curTime = ( float) m_Store->AttrAt( 0).Value< double>();
+    m_PlotStore->m_Times.PushBack( curTime);
+    
     return true;
 }
 
@@ -63,7 +63,7 @@ bool    Ax_PlotVw::Render( void)
 {  
     if ( ! m_PlotRender->m_Times.Size())
         return true;
-    std::lock_guard<std::mutex> lock( m_Mutex);
+    std::lock_guard<std::mutex>     lock( m_RenderMutex);
     ImGui::Begin( "Species Graph", NULL, ImGuiWindowFlags_NoCollapse); 
     const char  *xLabel = "Time";
     const char  *yLabel = "Conc";
@@ -78,8 +78,8 @@ bool    Ax_PlotVw::Render( void)
         Cy_USeg( 0, m_PlotRender->m_AllSpeciesVals.Size()).Traverse( [&]( uint32_t k) {
             if ( !m_PlotRender->m_SpeciesFlgs.At( k))
                 return;
-            auto    *species = m_PlotRender->m_AllSpeciesVals.PtrAt( k);
-            uint32_t speciesSz = species->Size();
+            auto        *species = m_PlotRender->m_AllSpeciesVals.PtrAt( k);
+            uint32_t    speciesSz = species->Size();
             if ( !speciesSz)
                 return;
             uint32_t timeSz = m_PlotRender->m_Times.Size();

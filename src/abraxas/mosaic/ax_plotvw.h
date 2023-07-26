@@ -13,9 +13,11 @@ class Ax_PlotVw : public Cy_TreeIfc
     Cy_FArr< NodePtr>       m_Species;
     
 
-    std::mutex                          m_Mutex;
+    std::mutex                          m_StoreMutex;
+    std::mutex                          m_RenderMutex;
     double                              m_TimeLow;
     double                              m_TimeHigh;
+
     struct PlotData
     { 
         ImPlotRect                          m_Limits;
@@ -33,6 +35,18 @@ class Ax_PlotVw : public Cy_TreeIfc
             m_AllSpeciesVals.DoInit( szNode); 
             m_SpeciesFlgs.DoInit( szNode, 0);
         }
+
+        void    CopyFrom( PlotData *plotData)
+        {
+            m_Limits = plotData->m_Limits;
+            Cy_USeg( 0, m_SpeciesFlgs.Size()).Traverse( [&]( uint32_t k) {
+                m_SpeciesFlgs.SetAt( k, plotData->m_SpeciesFlgs.At( k));
+            });
+            Cy_USeg( 0, m_AllSpeciesVals.Size()).Traverse( [&]( uint32_t i) {
+                m_AllSpeciesVals.SetAt( i, plotData->m_AllSpeciesVals.At( i));
+            });            
+            m_Times = plotData->m_Times; 
+        }
     };
     
     PlotData                                m_PlotData0; 
@@ -44,7 +58,7 @@ public:
         m_Layout( NULL) 
     {
         m_PlotRender = &m_PlotData0;
-        m_PlotStore = &m_PlotData0;
+        m_PlotStore = &m_PlotData1;
     }
 
     ~Ax_PlotVw( void)
@@ -89,7 +103,22 @@ public:
         return [&]( uint16_t succ, Cy_ChoreQueue *queue, uint32_t entInd, double time, uint32_t speciesInd, double speciesValue,  uint32_t clusterInd, uint32_t sz ) {
             if ( !m_Species.Size())
                 DoSetup( time);
-            return MonitorSimulation( entInd, time, speciesInd, speciesValue, clusterInd, sz);
+            if ( sz) 
+                return true;
+            bool    res = MonitorSimulation( entInd, time, speciesInd, speciesValue, clusterInd, sz);
+            if ( !res)
+                return false;
+            {
+                std::lock_guard<std::mutex>     lock( m_RenderMutex);
+                std::swap( m_PlotRender, m_PlotStore);
+            }
+            if ( !queue)
+                m_PlotStore->CopyFrom( m_PlotRender);
+            else
+                queue->EnqueueJob( queue->Construct( succ, [&]( uint16_t succId, Cy_ChoreQueue *queue){
+                    m_PlotStore->CopyFrom( m_PlotRender);
+                }));
+            return true;
         };
     } 
 
