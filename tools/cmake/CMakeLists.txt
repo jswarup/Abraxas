@@ -70,8 +70,7 @@ set ( AX_LATTICE_SOURCES
     ${SOURCE_PATH}/abraxas/render/ax_glbuffers.cpp
     ${SOURCE_PATH}/abraxas/render/ax_glctxt.cpp
     ${SOURCE_PATH}/abraxas/render/ax_shader.cpp
-    ${SOURCE_PATH}/abraxas/mosaic/ax_abraxasapp.cpp    
-    ${SOURCE_PATH}/abraxas/carton/ax_biomeifc.cpp
+    ${SOURCE_PATH}/abraxas/mosaic/ax_abraxasapp.cpp   
 )
 
 add_library( lattice STATIC ${AX_LATTICE_SOURCES} )

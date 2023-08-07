@@ -5,8 +5,7 @@
 #include    "abraxas/elems/ax_light.h" 
 
 #include    "abraxas/mosaic/ax_imwidgets.h"
-#include    "abraxas/mosaic/ax_iguilets.h"
-#include    "abraxas/carton/ax_biomeifc.h"
+#include    "abraxas/mosaic/ax_iguilets.h" 
 #include    "abraxas/mosaic/ax_plotvw.h" 
 
 //---------------------------------------------------------------------------------------------------------------------------------
@@ -68,7 +67,7 @@ class Ax_PropPanel : public Cy_TreeIfc
     bool                m_JacobiFlg;
     uint32_t            m_SzBlkTick;
     std::string         m_FileName;
-    Ax_BiomeIfc         m_Biome;
+    Cw_BiomeIfc         m_Biome;
 
     std::string         m_DiffFileName;
     Cw_BiomeIfc         m_DiffBiome;
