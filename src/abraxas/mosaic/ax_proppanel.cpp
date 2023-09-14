@@ -249,7 +249,7 @@ Cy_TreeIfc::NodePtr Ax_PropPanel::FetchSimLoad( void)
 Cy_TreeIfc::NodePtr Ax_PropPanel::FetchSimRun( void)
 {
     std::string     scriptPath = "FASLG_TC_ONCO_V1/s.g"; 
-    return m_Biome.FetchSimRun( scriptPath, m_Screen->FetchMonitor( m_Biome.FetchSimLoad( )));
+    return m_Biome.FetchSimRunMonitor( scriptPath, m_Screen->FetchMonitor( m_Biome.FetchSimLoad( )));
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------
